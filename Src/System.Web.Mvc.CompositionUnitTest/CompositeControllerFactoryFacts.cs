@@ -91,8 +91,8 @@ namespace System.Web.Mvc.CompositionUnitTest
             // Teardown
         }
 
-        [Theory, AutoMvcData]
-        public void CreateControllerWillInvokeFactoriesWithCorrectRequestContext(RequestContext requestContext, string controllerName)
+        [Theory, InlineAutoMvcData("testControllerName")]
+        public void CreateControllerWillInvokeFactoriesWithCorrectRequestContext(string controllerName, RequestContext requestContext)
         {
             // Fixture setup
             var verified = false;
@@ -113,8 +113,8 @@ namespace System.Web.Mvc.CompositionUnitTest
             // Teardown
         }
 
-        [Theory, AutoMvcData]
-        public void CreateControllerWillInvokeFactoriesWithCorrectControllerName(RequestContext requestContext, string controllerName)
+        [Theory, InlineAutoMvcData("testControllerName")]
+        public void CreateControllerWillInvokeFactoriesWithCorrectControllerName(string controllerName, RequestContext requestContext)
         {
             // Fixture setup
             var verified = false;
@@ -135,8 +135,8 @@ namespace System.Web.Mvc.CompositionUnitTest
             // Teardown
         }
 
-        [Theory, AutoMvcData]
-        public void CreateControllerWillReturnFirstControllerResultFromFactories(RequestContext requestContext, string controllerName, IController controller)
+        [Theory, InlineAutoMvcData("testControllerName")]
+        public void CreateControllerWillReturnFirstControllerResultFromFactories(string controllerName, RequestContext requestContext, IController controller)
         {
             // Fixture setup
             var factories = new IControllerFactory[]
@@ -153,8 +153,8 @@ namespace System.Web.Mvc.CompositionUnitTest
             // Teardown
         }
 
-        [Theory, AutoMvcData]
-        public void CreateControllerWillReturnNullIfAllFactoriesReturnNull(RequestContext requestContext, string controllerName)
+        [Theory, InlineAutoMvcData("testControllerName")]
+        public void CreateControllerWillReturnNullIfAllFactoriesReturnNull(string controllerName, RequestContext requestContext)
         {
             // Fixture setup
             var factories = new IControllerFactory[]
