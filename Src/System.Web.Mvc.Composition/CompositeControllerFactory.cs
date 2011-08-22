@@ -4,6 +4,9 @@ using System.Web.Routing;
 
 namespace System.Web.Mvc.Composition
 {
+    /// <summary>
+    /// An implementation of <see cref="IControllerFactory"/> that composes other IControllerFactory instances.
+    /// </summary>
     public class CompositeControllerFactory : DefaultControllerFactory
     {
         private readonly IEnumerable<IControllerFactory> factories;
