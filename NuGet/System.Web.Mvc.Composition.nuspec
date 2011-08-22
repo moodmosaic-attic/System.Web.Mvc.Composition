@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>System.Web.Mvc.Composition</id>
+    <version>1.0</version>
+    <title>System.Web.Mvc.Composition</title>
+    <authors>Nikos Baxevanis</authors>
+    <owners>Nikos Baxevanis</owners>
+    <description>A set of types for managing the composition of multiple IControllerFactory implementations.</description>
+    <projectUrl>https://github.com/moodmosaic/System.Web.Mvc.Composition</projectUrl>
+    <language>en-US</language>
+  </metadata>
+  <files>
+    <file src="System.Web.Mvc.Composition.dll" target="lib" />
+    <file src="System.Web.Mvc.Composition.XML" target="lib" />
+  </files>
+</package>
