@@ -96,15 +96,15 @@ namespace System.Web.Mvc.CompositionUnitTest
         {
             // Fixture setup
             var verified = false;
-            var factory  = new DelegatingControllerFactory
-                               {
-                OnCreateController = (r, c) =>
-                {
-                    Assert.Equal(requestContext, r);
-                    verified = true;
-                    return null;
-                }
-            };
+            var factory = new DelegatingControllerFactory
+                                {
+                                   OnCreateController = (r, c) =>
+                                   {
+                                       Assert.Equal(requestContext, r);
+                                       verified = true;
+                                       return null;
+                                   }
+                               };
             var sut = new CompositeControllerFactory(factory);
             // Exercise system
             sut.CreateController(requestContext, controllerName);
@@ -118,15 +118,15 @@ namespace System.Web.Mvc.CompositionUnitTest
         {
             // Fixture setup
             var verified = false;
-            var factory  = new DelegatingControllerFactory
+            var factory = new DelegatingControllerFactory
                                {
-                OnCreateController = (r, c) =>
-                {
-                    Assert.Equal(controllerName, c);
-                    verified = true;
-                    return null;
-                }
-            };
+                                   OnCreateController = (r, c) =>
+                                   {
+                                       Assert.Equal(controllerName, c);
+                                       verified = true;
+                                       return null;
+                                   }
+                               };
             var sut = new CompositeControllerFactory(factory);
             // Exercise system
             sut.CreateController(requestContext, controllerName);
