@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Web.Mvc.Composition;
 using System.Web.Routing;
+using Moq;
+using Ploeh.AutoFixture.Xunit;
 using Xunit;
 using Xunit.Extensions;
 
@@ -12,36 +14,22 @@ namespace System.Web.Mvc.CompositionUnitTest
         [Theory, AutoMvcData]
         public void SutIsControllerFactory(CompositeControllerFactory sut)
         {
-            // Fixture setup
-            // Exercise system
-            // Verify outcome
             Assert.IsAssignableFrom<IControllerFactory>(sut);
-            // Teardown
         }
 
-        [Fact]
-        public void FactoriesWillNotBeNullWhenSutIsCreatedWithDefaultConstructor()
+        [Theory, AutoMvcData]
+        public void FactoriesWillNotBeNullWhenSutIsCreatedWithDefaultConstructor(
+            CompositeControllerFactory sut)
         {
-            // Fixture setup
-            var sut = new CompositeControllerFactory();
-            // Exercise system
             IEnumerable<IControllerFactory> result = sut.Factories;
-            // Verify outcome
             Assert.NotNull(result);
-            // Teardown
         }
 
-        [Fact]
-        public void FactoriesWillMatchParamsArray()
+        [Theory, AutoMvcData]
+        public void FactoriesWillMatchParamsArray(IControllerFactory[] expectedFactories)
         {
             // Fixture setup
-            var expectedFactories = new IControllerFactory[]
-            {
-                new DelegatingControllerFactory(),
-                new DelegatingControllerFactory(),
-                new DelegatingControllerFactory()
-            };
-            var sut = new CompositeControllerFactory(expectedFactories[0], expectedFactories[1], expectedFactories[2]);
+            var sut = new CompositeControllerFactory(expectedFactories);
             // Exercise system
             var result = sut.Factories;
             // Verify outcome
@@ -52,118 +40,74 @@ namespace System.Web.Mvc.CompositionUnitTest
         [Fact]
         public void InitializeWithNullArrayThrows()
         {
-            // Fixture setup
-            // Exercise system
-            // Verify outcome
             Assert.Throws<ArgumentNullException>(
                 () => new CompositeControllerFactory(null)
                 );
-            // Teardown
-        }
-
-        [Fact]
-        public void FactoriesWillMatchListParameter()
-        {
-            // Fixture setup
-            var expectedFactories = new IControllerFactory[]
-            {
-                new DelegatingControllerFactory(),
-                new DelegatingControllerFactory(),
-                new DelegatingControllerFactory()
-            };
-            var sut = new CompositeControllerFactory(expectedFactories);
-            // Exercise system
-            var result = sut.Factories;
-            // Verify outcome
-            Assert.True(expectedFactories.SequenceEqual(result));
-            // Teardown
         }
 
         [Fact]
         public void InitializeWithNullEnumerableThrows()
         {
-            // Fixture setup
-            // Exercise system
-            // Verify outcome
             Assert.Throws<ArgumentNullException>(
                 () => new CompositeControllerFactory((IEnumerable<IControllerFactory>)null)
                 );
-            // Teardown
         }
 
-        [Theory, InlineAutoMvcData("testControllerName")]
-        public void CreateControllerWillInvokeFactoriesWithCorrectRequestContext(string controllerName, RequestContext requestContext)
+        [Theory, AutoMvcData]
+        public void CreateControllerWillInvokeFactoriesWithCorrectArguments(
+            string controllerName, 
+            RequestContext requestContext,
+            [Frozen]Mock<IControllerFactory> factoryMock,
+            CompositeControllerFactory sut)
         {
-            // Fixture setup
-            var verified = false;
-            var factory = new DelegatingControllerFactory
-                                {
-                                   OnCreateController = (r, c) =>
-                                   {
-                                       Assert.Equal(requestContext, r);
-                                       verified = true;
-                                       return null;
-                                   }
-                               };
-            var sut = new CompositeControllerFactory(factory);
-            // Exercise system
             sut.CreateController(requestContext, controllerName);
-            // Verify outcome
-            Assert.True(verified);
-            // Teardown
+            factoryMock.Verify(x => x.CreateController(requestContext, controllerName));
         }
 
-        [Theory, InlineAutoMvcData("testControllerName")]
-        public void CreateControllerWillInvokeFactoriesWithCorrectControllerName(string controllerName, RequestContext requestContext)
+        [Theory, AutoMvcData]
+        public void CreateControllerWillReturnFirstControllerResultFromFactories(
+            string controllerName, 
+            RequestContext requestContext,
+            IController expectedResult,
+            Mock<IControllerFactory>[] factoryStubs)
         {
-            // Fixture setup
-            var verified = false;
-            var factory = new DelegatingControllerFactory
-                               {
-                                   OnCreateController = (r, c) =>
-                                   {
-                                       Assert.Equal(controllerName, c);
-                                       verified = true;
-                                       return null;
-                                   }
-                               };
-            var sut = new CompositeControllerFactory(factory);
-            // Exercise system
-            sut.CreateController(requestContext, controllerName);
-            // Verify outcome
-            Assert.True(verified);
-            // Teardown
-        }
+            // Fixture Setup
+            factoryStubs[0]
+                .Setup(x => x.CreateController(requestContext, controllerName))
+                .Returns((IController)null);
+            factoryStubs[1]
+                .Setup(x => x.CreateController(requestContext, controllerName))
+                .Returns(expectedResult);
+            factoryStubs[2]
+                .Setup(x => x.CreateController(requestContext, controllerName))
+                .Returns((IController)null);
 
-        [Theory, InlineAutoMvcData("testControllerName")]
-        public void CreateControllerWillReturnFirstControllerResultFromFactories(string controllerName, RequestContext requestContext, IController controller)
-        {
-            // Fixture setup
-            var factories = new IControllerFactory[]
-            {
-                new DelegatingControllerFactory { OnCreateController = (r, c) => null       },
-                new DelegatingControllerFactory { OnCreateController = (r, c) => controller },
-                new DelegatingControllerFactory { OnCreateController = (r, c) => null       }
-            };
-            var sut = new CompositeControllerFactory(factories);
+            var sut = new CompositeControllerFactory(factoryStubs.Select(x => x.Object));
             // Exercise system
             var result = sut.CreateController(requestContext, controllerName);
             // Verify outcome
-            Assert.Equal(controller, result);
+            Assert.Equal(expectedResult, result);
             // Teardown
         }
 
-        [Theory, InlineAutoMvcData("testControllerName")]
-        public void CreateControllerWillReturnNullIfAllFactoriesReturnNull(string controllerName, RequestContext requestContext)
+        [Theory, AutoMvcData]
+        public void CreateControllerWillReturnNullIfAllFactoriesReturnNull(
+            string controllerName, 
+            RequestContext requestContext,
+            Mock<IControllerFactory>[] factoryStubs)
         {
-            // Fixture setup
-            var factories = new IControllerFactory[]
-            {
-                new DelegatingControllerFactory { OnCreateController = (r, c) => null },
-                new DelegatingControllerFactory { OnCreateController = (r, c) => null },
-                new DelegatingControllerFactory { OnCreateController = (r, c) => null }
-            };
-            var sut = new CompositeControllerFactory(factories);
+            // Fixture Setup
+            factoryStubs[0]
+                .Setup(x => x.CreateController(requestContext, controllerName))
+                .Returns((IController)null);
+            factoryStubs[1]
+                .Setup(x => x.CreateController(requestContext, controllerName))
+                .Returns((IController)null);
+            factoryStubs[2]
+                .Setup(x => x.CreateController(requestContext, controllerName))
+                .Returns((IController)null);
+            
+            var sut = new CompositeControllerFactory(factoryStubs.Select(x => x.Object));
             // Exercise system
             var result = sut.CreateController(requestContext, controllerName);
             // Verify outcome

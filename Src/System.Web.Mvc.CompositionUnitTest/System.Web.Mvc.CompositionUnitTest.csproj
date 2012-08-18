@@ -68,8 +68,6 @@
   <ItemGroup>
     <Compile Include="AutoMvcDataAttribute.cs" />
     <Compile Include="CompositeControllerFactoryFacts.cs" />
-    <Compile Include="DelegatingControllerFactory.cs" />
-    <Compile Include="InlineAutoMvcDataAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
